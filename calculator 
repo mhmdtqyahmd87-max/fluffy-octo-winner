@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حاسبتي - آلة حاسبة</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main class="app">
+        <section class="calculator">
+            <div class="header">
+                <div>
+                    <h1>حاسبتي</h1>
+                    <p>آلة حاسبة بسيطة ومتطورة</p>
+                </div>
+                <button id="clearAll" class="danger small-btn">مسح الكل</button>
+            </div>
+
+            <div class="display">
+                <div id="previousOperation" class="previous"></div>
+                <input id="display" type="text" value="0" readonly aria-label="شاشة الحاسبة">
+            </div>
+
+            <div class="buttons">
+                <button class="function" data-action="clear">C</button>
+                <button class="function" data-action="backspace">⌫</button>
+                <button class="operator" data-operation="%">%</button>
+                <button class="operator" data-operation="/">÷</button>
+
+                <button data-number="7">7</button>
+                <button data-number="8">8</button>
+                <button data-number="9">9</button>
+                <button class="operator" data-operation="*">×</button>
+
+                <button data-number="4">4</button>
+                <button data-number="5">5</button>
+                <button data-number="6">6</button>
+                <button class="operator" data-operation="-">−</button>
+
+                <button data-number="1">1</button>
+                <button data-number="2">2</button>
+                <button data-number="3">3</button>
+                <button class="operator" data-operation="+">+</button>
+
+                <button class="function" data-action="sqrt">√</button>
+                <button data-number="0">0</button>
+                <button data-number=".">.</button>
+                <button class="equals" data-action="equals">=</button>
+            </div>
+
+            <div class="power-row">
+                <button class="operator power" data-operation="**">xʸ</button>
+            </div>
+        </section>
+
+        <section class="history-card">
+            <div class="history-header">
+                <div>
+                    <h2>سجل العمليات</h2>
+                    <p id="historyCount">0 عملية</p>
+                </div>
+                <button id="clearHistory" class="danger">مسح السجل</button>
+            </div>
+
+            <div id="history" class="history-empty">
+                لا توجد عمليات حتى الآن.
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
