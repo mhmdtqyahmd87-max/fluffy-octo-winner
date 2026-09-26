@@ -1,0 +1,274 @@
+const display = document.getElementById("display");
+const previousOperation = document.getElementById("previousOperation");
+const historyBox = document.getElementById("history");
+const historyCount = document.getElementById("historyCount");
+const clearHistoryButton = document.getElementById("clearHistory");
+const clearAllButton = document.getElementById("clearAll");
+
+let currentInput = "0";
+let firstNumber = null;
+let operator = null;
+let waitingForSecondNumber = false;
+let history = [];
+
+function updateDisplay() {
+    display.value = currentInput;
+}
+
+function addNumber(number) {
+    if (waitingForSecondNumber) {
+        currentInput = number === "." ? "0." : number;
+        waitingForSecondNumber = false;
+        return;
+    }
+
+    if (number === "." && currentInput.includes(".")) {
+        return;
+    }
+
+    if (currentInput === "0" && number !== ".") {
+        currentInput = number;
+    } else {
+        currentInput += number;
+    }
+}
+
+function chooseOperator(nextOperator) {
+    const value = Number(currentInput);
+
+    if (!Number.isFinite(value)) {
+        showError("اكتب رقمًا صالحًا");
+        return;
+    }
+
+    if (operator !== null && waitingForSecondNumber) {
+        operator = nextOperator;
+        return;
+    }
+
+    if (firstNumber === null) {
+        firstNumber = value;
+    } else if (operator !== null) {
+        const result = calculate(firstNumber, value, operator);
+
+        if (result === null) return;
+
+        firstNumber = result;
+        currentInput = formatNumber(result);
+    }
+
+    operator = nextOperator;
+    waitingForSecondNumber = true;
+    previousOperation.textContent =
+        `${formatNumber(firstNumber)} ${displayOperator(operator)}`;
+}
+
+function calculate(a, b, op) {
+    if ((op === "/" || op === "%") && b === 0) {
+        showError("مينفعش القسمة أو باقي القسمة على صفر");
+        resetCalculator(false);
+        return null;
+    }
+
+    let result;
+
+    if (op === "+") result = a + b;
+    else if (op === "-") result = a - b;
+    else if (op === "*") result = a * b;
+    else if (op === "/") result = a / b;
+    else if (op === "%") result = a % b;
+    else if (op === "**") result = a ** b;
+
+    if (!Number.isFinite(result)) {
+        showError("النتيجة غير صالحة");
+        resetCalculator(false);
+        return null;
+    }
+
+    return Number(result.toFixed(10));
+}
+
+function equals() {
+    if (operator === null || firstNumber === null || waitingForSecondNumber) {
+        return;
+    }
+
+    const secondNumber = Number(currentInput);
+
+    if (!Number.isFinite(secondNumber)) {
+        showError("اكتب رقمًا صالحًا");
+        return;
+    }
+
+    const result = calculate(firstNumber, secondNumber, operator);
+
+    if (result === null) return;
+
+    const operationText =
+        `${formatNumber(firstNumber)} ${displayOperator(operator)} ${formatNumber(secondNumber)} = ${formatNumber(result)}`;
+
+    currentInput = formatNumber(result);
+    previousOperation.textContent = operationText;
+    addHistory(operationText);
+
+    firstNumber = null;
+    operator = null;
+    waitingForSecondNumber = true;
+}
+
+function squareRoot() {
+    const value = Number(currentInput);
+
+    if (!Number.isFinite(value)) {
+        showError("اكتب رقمًا صالحًا");
+        return;
+    }
+
+    if (value < 0) {
+        showError("مينفعش نحسب جذر رقم سالب");
+        return;
+    }
+
+    const result = Number(Math.sqrt(value).toFixed(10));
+    const operationText = `√${formatNumber(value)} = ${formatNumber(result)}`;
+
+    currentInput = formatNumber(result);
+    previousOperation.textContent = operationText;
+    addHistory(operationText);
+
+    waitingForSecondNumber = true;
+}
+
+function clearCurrent() {
+    currentInput = "0";
+    firstNumber = null;
+    operator = null;
+    waitingForSecondNumber = false;
+    previousOperation.textContent = "";
+}
+
+function backspace() {
+    if (waitingForSecondNumber) return;
+
+    currentInput = currentInput.length > 1
+        ? currentInput.slice(0, -1)
+        : "0";
+}
+
+function resetCalculator(showMessage = true) {
+    clearCurrent();
+    if (showMessage) showError("تم مسح العملية");
+}
+
+function formatNumber(value) {
+    return Number(value).toLocaleString("en-US", {
+        maximumFractionDigits: 10
+    });
+}
+
+function displayOperator(op) {
+    if (op === "*") return "×";
+    if (op === "/") return "÷";
+    if (op === "**") return "xʸ";
+    return op;
+}
+
+function addHistory(operation) {
+    history.unshift(operation);
+    renderHistory();
+}
+
+function renderHistory() {
+    historyCount.textContent =
+        `${history.length} ${history.length === 1 ? "عملية" : "عمليات"}`;
+
+    if (history.length === 0) {
+        historyBox.className = "history-empty";
+        historyBox.textContent = "لا توجد عمليات حتى الآن.";
+        return;
+    }
+
+    historyBox.className = "history";
+    historyBox.innerHTML = "";
+
+    history.forEach(operation => {
+        const item = document.createElement("div");
+        item.className = "history-item";
+        item.textContent = operation;
+        historyBox.appendChild(item);
+    });
+}
+
+function showError(message) {
+    alert(message);
+}
+
+document.querySelectorAll("[data-number]").forEach(button => {
+    button.addEventListener("click", () => {
+        addNumber(button.dataset.number);
+        updateDisplay();
+    });
+});
+
+document.querySelectorAll("[data-operation]").forEach(button => {
+    button.addEventListener("click", () => {
+        chooseOperator(button.dataset.operation);
+        updateDisplay();
+    });
+});
+
+document.querySelector('[data-action="equals"]').addEventListener("click", () => {
+    equals();
+    updateDisplay();
+});
+
+document.querySelector('[data-action="clear"]').addEventListener("click", () => {
+    clearCurrent();
+    updateDisplay();
+});
+
+document.querySelector('[data-action="backspace"]').addEventListener("click", () => {
+    backspace();
+    updateDisplay();
+});
+
+document.querySelector('[data-action="sqrt"]').addEventListener("click", () => {
+    squareRoot();
+    updateDisplay();
+});
+
+clearHistoryButton.addEventListener("click", () => {
+    history = [];
+    renderHistory();
+});
+
+clearAllButton.addEventListener("click", () => {
+    history = [];
+    clearCurrent();
+    updateDisplay();
+    renderHistory();
+});
+
+document.addEventListener("keydown", event => {
+    const key = event.key;
+
+    if (/^[0-9.]$/.test(key)) {
+        addNumber(key);
+    } else if (["+", "-", "*", "/", "%"].includes(key)) {
+        chooseOperator(key);
+    } else if (key === "Enter" || key === "=") {
+        equals();
+    } else if (key === "Backspace") {
+        backspace();
+    } else if (key === "Escape") {
+        clearCurrent();
+    } else {
+        return;
+    }
+
+    event.preventDefault();
+    updateDisplay();
+});
+
+updateDisplay();
+renderHistory();
